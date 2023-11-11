@@ -36,13 +36,7 @@ class OpenAIChat:
             user_prompt['content'] = user_prompt['content'].format_map(args_dict)
 
             # Always start with the current system prompt
-            current_conversation = [system_prompt]
-
-            # Add all previous user prompts and assistant responses
-            current_conversation.extend(conversation)
-
-            # Append the current user prompt
-            current_conversation.append(user_prompt)
+            current_conversation = [system_prompt, *conversation, user_prompt]
 
             # Send the current conversation state to OpenAI and get the completion
             assistant_response_content = self.chat_with_openai(current_conversation)
@@ -71,10 +65,9 @@ def create_parser(custom_args):
 def generate_csv_filename(args):
     # Generate a CSV filename based on all the defined arguments
     filename_parts = ['conversation']
-    for arg, value in vars(args).items():
-        # Skip if the argument value is None
-        if value is not None:
-            filename_parts.append(str(value))
+    filename_parts.extend(
+        str(value) for value in vars(args).values() if value is not None
+    )
     return '-'.join(filename_parts) + '.csv'
 
 def gptchain(custom_args, message_chain, model='gpt-4-1106-preview', temperature=0.7, max_tokens=1000):
